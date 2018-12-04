@@ -77,7 +77,18 @@ public class Person {
 	    	Matcher matcher = Pattern.compile("[\\w-]{1,150}").matcher(fml_name_part);
 	    	return matcher.matches();
 	    }
-	    
+	}
+
+//	 Валидация телефонного номера. Допустимые параметры: от 2 до 50 символов: цифра, +, -, #.
+	public boolean validatePhoneNumber (String number, boolean empty_allowed){
+		if (empty_allowed){
+			Matcher matcher = Pattern.compile("[\\w-]{2,50}").matcher(number);
+			return matcher.matches();
+		}
+		else {
+			Matcher matcher = Pattern.compile("[\\w-]{2,50}").matcher(number);
+			return matcher.matches();
+		}
 	}
 	
 	// ++++++++++++++++++++++++++++++++++++++
