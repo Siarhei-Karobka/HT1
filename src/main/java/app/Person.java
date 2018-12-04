@@ -3,6 +3,7 @@ package app;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,7 +17,8 @@ public class Person {
 	private String surname = "";
 	private String middlename = "";
 	private HashMap<String,String> phones = new HashMap<String,String>();
-	
+	private DBWorker db = DBWorker.getInstance();
+
 	// Конструктор для создания записи о человеке на основе данных из БД. 
 	public Person(String id, String name, String surname, String middlename)
 	{
@@ -69,26 +71,14 @@ public class Person {
 	{
 	    if (empty_allowed)
 	    {
-	    	Matcher matcher = Pattern.compile("[\\w-]{0,150}").matcher(fml_name_part);
+	    	Matcher matcher = Pattern.compile("^[а-яА-ЯёЁa-zA-Z0-9-_]{0,150}").matcher(fml_name_part);
 	    	return matcher.matches();
 	    }
 	    else
 	    {
-	    	Matcher matcher = Pattern.compile("[\\w-]{1,150}").matcher(fml_name_part);
+	    	Matcher matcher = Pattern.compile("^[а-яА-ЯёЁa-zA-Z0-9-_]{0,150}").matcher(fml_name_part);
 	    	return matcher.matches();
 	    }
-	}
-
-//	 Валидация телефонного номера. Допустимые параметры: от 2 до 50 символов: цифра, +, -, #.
-	public boolean validatePhoneNumber (String number, boolean empty_allowed){
-		if (empty_allowed){
-			Matcher matcher = Pattern.compile("[\\w-]{2,50}").matcher(number);
-			return matcher.matches();
-		}
-		else {
-			Matcher matcher = Pattern.compile("[\\w-]{2,50}").matcher(number);
-			return matcher.matches();
-		}
 	}
 	
 	// ++++++++++++++++++++++++++++++++++++++
@@ -151,5 +141,73 @@ public class Person {
 	}
 	// Геттеры и сеттеры
 	// --------------------------------------
-	
+
+	public boolean addPhoneNumber(String number)
+	{
+		String query;
+
+		query = "INSERT INTO `phone` (`owner`, `number`) VALUES ('" + id +"', '" + number +"')";
+
+		Integer affected_rows = this.db.changeDBData(query);
+
+		// Если добавление прошло успешно...
+		if (affected_rows > 0)
+		{
+			phones.put(this.db.getLastInsertId().toString(), number);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	// Обновление номера телефона.
+	public boolean updatePhoneNumber(String id, String number)
+	{
+		Integer id_filtered = Integer.parseInt(id);
+		String query = "";
+
+		query = "UPDATE `phone` SET `number` = '" + number + "' WHERE `id` = " + id_filtered;
+
+		Integer affected_rows = this.db.changeDBData(query);
+
+		// Если обновление прошло успешно...
+		if (affected_rows > 0)
+		{
+			phones.put(id, number);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+
+	// Удаление номера телефона.
+	public boolean deletePhoneNumber(String id)
+	{
+		if ((id != null)&&(!id.equals("null")))
+		{
+			int filtered_id = Integer.parseInt(id);
+
+			Integer affected_rows = this.db.changeDBData("DELETE FROM `phone` WHERE `id`=" + filtered_id);
+
+			// Если удаление прошло успешно...
+			if (affected_rows > 0)
+			{
+				phones.remove(id);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
 }
